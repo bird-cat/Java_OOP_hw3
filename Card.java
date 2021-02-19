@@ -52,6 +52,14 @@ public class Card implements Comparable {
         return rank;
     }
 
+    public boolean isSameColor(Card another) {
+        HashSet<Character> redSuits = new HashSet<>();
+        redSuits.add('D');
+        redSuits.add('H');
+        return (redSuits.contains(suit) && redSuits.contains(another.getSuit())) ||
+            (!redSuits.contains(suit) && !redSuits.contains(another.getSuit()));
+    }
+
     public int compare(Comparable item) {
         Card card = (Card) item;
         int d1 = rankOrder.get(this.rank) - rankOrder.get(card.rank);
