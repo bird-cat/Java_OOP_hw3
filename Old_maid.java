@@ -3,16 +3,16 @@ package ntu.r09922114.gambling;
 import java.util.*;
 import ntu.r09922114.util.*;
 
-public abstract class Old_maid {
-    private Player[] players = new Player[4];
-    private int playerCount = 4;
+public class Old_maid {
+    private Player[] players;
+    private int playerCount;
 
     // Build a card stack
-    private Card[] allCards;
-    private static String[] rankList = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
-    private static char[] suitList = { 'C', 'D', 'H', 'S' };
+    protected Card[] allCards;
+    protected static String[] rankList = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
+    protected static char[] suitList = { 'C', 'D', 'H', 'S' };
 
-    private void buildDack() {
+    protected void buildDack() {
         allCards = new Card[53];
         int k = 0;
         for (char suit : suitList)
@@ -21,56 +21,69 @@ public abstract class Old_maid {
         allCards[52] = new Card('B', "0");
     }
 
-    abstract boolean isPair(Card a, Card b);
+    public boolean isPair(Card a, Card b) {
+        return !a.getRank().equals("0") && a.getRank().equals(b.getRank());
+    }
 
-    public Old_maid() {
+    public Old_maid(int playerCount) {
+        // assign playerCount
+        this.playerCount = playerCount;
+
         // Build the card dack
         buildDack();
 
         // Shuffle cards
         Shuffle.shuffleArray(allCards);
 
-        // Split cards into 4 parts
-        Card[] cards0 = Arrays.copyOfRange(allCards, 0, 14);
-        Card[] cards1 = Arrays.copyOfRange(allCards, 14, 27);
-        Card[] cards2 = Arrays.copyOfRange(allCards, 27, 40);
-        Card[] cards3 = Arrays.copyOfRange(allCards, 40, 53);
+        // Split cards to every player
+        Card[][] cardsForEveryone = distributeCards();
 
         // Sort
-        Sort.sort(cards0);
-        Sort.sort(cards1);
-        Sort.sort(cards2);
-        Sort.sort(cards3);
+        for (int i = 0; i < cardsForEveryone.length; i++)
+            Sort.sort(cardsForEveryone[i]);
 
         // Show cards before removing pairs
         System.out.println("Deal cards");
-        System.out.print("Player0: ");
-        showCardList(cards0);
-        System.out.print("Player1: ");
-        showCardList(cards1);
-        System.out.print("Player2: ");
-        showCardList(cards2);
-        System.out.print("Player3: ");
-        showCardList(cards3);
+        for (int i = 0; i < playerCount; i++) {
+            System.out.print("Player" + i + ": ");
+            showCardList(cardsForEveryone[i]);
+        }
 
         // Remove pairs and distribute to players
-        players[0] = new Player(0, removePairs(cards0));
-        players[1] = new Player(1, removePairs(cards1));
-        players[2] = new Player(2, removePairs(cards2));
-        players[3] = new Player(3, removePairs(cards3));
+        players = new Player[playerCount];
+        for (int i = 0; i < playerCount; i++)
+            players[i] = new Player(i, removePairs(cardsForEveryone[i]));
 
         // Set playing order
-        for (int i = 0; i < 4; i++) {
-            players[i].setNextPlayer(players[(i + 1) % 4]);
-            players[i].setPrevPlayer(players[(i - 1 + 4) % 4]);
+        for (int i = 0; i < playerCount; i++) {
+            players[i].setNextPlayer(players[(i + 1) % playerCount]);
+            players[i].setPrevPlayer(players[(i - 1 + playerCount) % playerCount]);
         }
 
         // Show cards after dropping pairs
         System.out.println("Drop cards");
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < playerCount; i++) {
             System.out.print("Player" + i + ": ");
             players[i].showCards();
         }
+    }
+
+    // distribute cards evenly to every player
+    private Card[][] distributeCards() {
+        Card[][] cardsForEveryone = new Card[playerCount][];
+        int quotient = allCards.length / playerCount;
+        int remainder = allCards.length % playerCount;
+        int front = 0;
+        for (int i = 0; i < playerCount; i++) {
+            if (i < remainder) {
+                cardsForEveryone[i] = Arrays.copyOfRange(allCards, front, front + quotient + 1);
+                front += quotient + 1;
+            } else {
+                cardsForEveryone[i] = Arrays.copyOfRange(allCards, front, front + quotient);
+                front += quotient;
+            }
+        }
+        return cardsForEveryone;
     }
 
     // Remove cards in pair in a sorted array
@@ -101,12 +114,13 @@ public abstract class Old_maid {
         Player current = players[0], next;
         boolean isBasicOver = false;
 
-        while (playerCount > 1) {
+        int finishPlayerCount = 0;
+        while (playerCount - finishPlayerCount > 1) {
             next = current.getNextPlayer();
 
             // Draw a card from the next player
             Card c = next.DrawCard();
-            current.insertOrDropPair(c);
+            current.insertOrDropPair(this, c);
             System.out.println(
                     "Player" + current.getID() + " draws a card from Player" + next.getID() + " " + c.toString());
 
@@ -121,19 +135,19 @@ public abstract class Old_maid {
             // Check has someone won and update the next player
             if (current.getCardCount() == 0 && next.getCardCount() == 0) {
                 System.out.println("Player" + current.getID() + " and" + " Player" + next.getID() + " win");
-                playerCount -= 2;
+                finishPlayerCount += 2;
                 current.getPrevPlayer().setNextPlayer(next.getNextPlayer());
                 next.getNextPlayer().setPrevPlayer(current.getPrevPlayer());
                 current = next.getNextPlayer();
             } else if (current.getCardCount() == 0) {
                 System.out.println("Player" + current.getID() + " wins");
-                playerCount--;
+                finishPlayerCount++;
                 current.getPrevPlayer().setNextPlayer(next);
                 current.getNextPlayer().setPrevPlayer(current.getPrevPlayer());
                 current = next;
             } else if (next.getCardCount() == 0) {
                 System.out.println("Player" + next.getID() + " wins");
-                playerCount--;
+                finishPlayerCount++;
                 next.getNextPlayer().setPrevPlayer(current);
                 next.getPrevPlayer().setNextPlayer(next.getNextPlayer());
                 current = next.getNextPlayer();
@@ -141,7 +155,7 @@ public abstract class Old_maid {
                 current = next;
             }
 
-            if (!isBasicOver && playerCount < 4) {
+            if (!isBasicOver && finishPlayerCount > 0) {
                 isBasicOver = true;
                 System.out.println("Basic game over");
                 System.out.println("Bonus game start");
