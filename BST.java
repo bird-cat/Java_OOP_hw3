@@ -3,6 +3,7 @@ package ntu.r09922114.binaryTree;
 import ntu.r09922114.container.Stack;
 import ntu.r09922114.util.Comparable;
 import ntu.r09922114.gambling.Card;
+import ntu.r09922114.gambling.Old_maid;
 
 public class BST {
     private BTNode root = null;
@@ -20,8 +21,8 @@ public class BST {
         root = root.remove(droppedNode);
     }
 
-    public BTNode searchPair(Card newCard) {
-        return BTNode.searchPair(root, newCard);
+    public BTNode searchPair(Old_maid game, Card newCard) {
+        return BTNode.searchPair(game, root, newCard);
     }
 
     public void printInorder() {

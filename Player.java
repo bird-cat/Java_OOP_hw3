@@ -46,10 +46,8 @@ class Player {
 
     // If the new card forms a pair with some old card, drop the pair.
     // Otherwise, insert the new card.
-    public void insertOrDropPair(Card card) {
-        BTNode pairedNode = null;
-        if (!card.getRank().equals("0"))
-            pairedNode = cards.searchPair(card);
+    public void insertOrDropPair(Old_maid game, Card card) {
+        BTNode pairedNode = cards.searchPair(game, card);
         if (pairedNode == null) {
             cards.insert(card);
             cardCount++;

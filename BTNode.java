@@ -2,6 +2,7 @@ package ntu.r09922114.binaryTree;
 
 import ntu.r09922114.util.Comparable;
 import ntu.r09922114.gambling.Card;
+import ntu.r09922114.gambling.Old_maid;
 
 public class BTNode {
     private BTNode left, right;
@@ -96,16 +97,16 @@ public class BTNode {
         return root;
     }
 
-    public static BTNode searchPair(BTNode root, Card newCard) {
+    public static BTNode searchPair(Old_maid game, BTNode root, Card newCard) {
         if (root == null)
             return null;
         Card curCard = (Card) root.getData();
-        if (newCard.getRank().equals(curCard.getRank()))
+        if (game.isPair(newCard, curCard))
             return root;
         if (newCard.compare(curCard) < 0)
-            return searchPair(root.left, newCard);
+            return searchPair(game, root.left, newCard);
         else
-            return searchPair(root.right, newCard);
+            return searchPair(game, root.right, newCard);
     }
 
     public static void printInorder(BTNode root) {
