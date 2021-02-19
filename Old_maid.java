@@ -3,32 +3,38 @@ package ntu.r09922114.gambling;
 import java.util.*;
 import ntu.r09922114.util.*;
 
-public class Old_maid {
+public abstract class Old_maid {
     private Player[] players = new Player[4];
     private int playerCount = 4;
 
     // Build a card stack
-    private static Card[] allCards = new Card[54];
+    private Card[] allCards;
     private static String[] rankList = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
     private static char[] suitList = { 'C', 'D', 'H', 'S' };
-    static {
+
+    private void buildDack() {
+        allCards = new Card[53];
         int k = 0;
         for (char suit : suitList)
             for (String rank : rankList)
                 allCards[k++] = new Card(suit, rank);
-        allCards[52] = new Card('R', "0");
-        allCards[53] = new Card('B', "0");
+        allCards[52] = new Card('B', "0");
     }
 
+    abstract boolean isPair(Card a, Card b);
+
     public Old_maid() {
+        // Build the card dack
+        buildDack();
+
         // Shuffle cards
         Shuffle.shuffleArray(allCards);
 
         // Split cards into 4 parts
         Card[] cards0 = Arrays.copyOfRange(allCards, 0, 14);
-        Card[] cards1 = Arrays.copyOfRange(allCards, 14, 28);
-        Card[] cards2 = Arrays.copyOfRange(allCards, 28, 41);
-        Card[] cards3 = Arrays.copyOfRange(allCards, 41, 54);
+        Card[] cards1 = Arrays.copyOfRange(allCards, 14, 27);
+        Card[] cards2 = Arrays.copyOfRange(allCards, 27, 40);
+        Card[] cards3 = Arrays.copyOfRange(allCards, 40, 53);
 
         // Sort
         Sort.sort(cards0);
@@ -71,9 +77,7 @@ public class Old_maid {
     private Card[] removePairs(Card[] cardList) {
         int i = 0, j = 0;
         while (j < cardList.length) {
-            if (j < cardList.length - 1 &&
-                !cardList[j].getRank().equals("0") &&
-                cardList[j].getRank().equals(cardList[j + 1].getRank()))
+            if (j < cardList.length - 1 && isPair(cardList[j], cardList[j + 1]))
                 j += 2;
             else {
                 cardList[i++] = cardList[j];
